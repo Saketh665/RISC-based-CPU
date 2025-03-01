@@ -1,0 +1,65 @@
+module ALU(
+    input [7:0] A, B,
+    input [2:0] ALU_Sel,
+    output reg [7:0] ALU_Out
+);
+    always @(*) begin
+        case (ALU_Sel)
+            3'b000: ALU_Out = A + B; // ADD
+            3'b001: ALU_Out = A - B; // SUB
+            3'b010: ALU_Out = A & B; // AND
+            3'b011: ALU_Out = A | B; // OR
+            3'b100: ALU_Out = A ^ B; // XOR
+            3'b101: ALU_Out = ~A;    // NOT
+            default: ALU_Out = 8'b00000000;
+        endcase
+    end
+endmodule
+
+module RegisterFile(
+    input clk,
+    input [2:0] ReadReg1, ReadReg2, WriteReg,
+    input [7:0] WriteData,
+    input RegWrite,
+    output [7:0] ReadData1, ReadData2
+);
+    reg [7:0] registers [7:0];
+    assign ReadData1 = registers[ReadReg1];
+    assign ReadData2 = registers[ReadReg2];
+    always @(posedge clk) begin
+        if (RegWrite)
+            registers[WriteReg] <= WriteData;
+    end
+endmodule
+
+module ControlUnit(
+    input [3:0] Opcode,
+    output reg [2:0] ALU_Sel,
+    output reg RegWrite
+);
+    always @(*) begin
+        case (Opcode)
+            4'b0001: begin ALU_Sel = 3'b000; RegWrite = 1; end // ADD
+            4'b0010: begin ALU_Sel = 3'b001; RegWrite = 1; end // SUB
+            4'b0011: begin ALU_Sel = 3'b010; RegWrite = 1; end // AND
+            4'b0100: begin ALU_Sel = 3'b011; RegWrite = 1; end // OR
+            default: begin ALU_Sel = 3'b000; RegWrite = 0; end
+        endcase
+    end
+endmodule
+
+module SimpleRISC_CPU(
+    input clk,
+    input [3:0] Opcode,
+    input [2:0] Rs1, Rs2, Rd,
+    output [7:0] Result
+);
+    wire [7:0] ReadData1, ReadData2, ALU_Result;
+    wire [2:0] ALU_Sel;
+    wire RegWrite;
+    
+    ControlUnit CU(Opcode, ALU_Sel, RegWrite);
+    RegisterFile RF(clk, Rs1, Rs2, Rd, ALU_Result, RegWrite, ReadData1, ReadData2);
+    ALU ALU_unit(ReadData1, ReadData2, ALU_Sel, ALU_Result);
+    assign Result = ALU_Result;
+endmodule
