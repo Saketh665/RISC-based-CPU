@@ -1,0 +1,30 @@
+module testbench;
+    reg clk;
+    reg [3:0] Opcode;
+    reg [2:0] Rs1, Rs2, Rd;
+    wire [7:0] Result;
+
+    SimpleRISC_CPU CPU(clk, Opcode, Rs1, Rs2, Rd, Result);
+
+    initial begin
+        clk = 0;
+        forever #5 clk = ~clk;
+    end
+
+    initial begin
+        // Test ADD instruction (Opcode 0001)
+        Opcode = 4'b0001; Rs1 = 3'b001; Rs2 = 3'b010; Rd = 3'b011; #10;
+        
+        // Test SUB instruction (Opcode 0010)
+        Opcode = 4'b0010; Rs1 = 3'b011; Rs2 = 3'b001; Rd = 3'b100; #10;
+        
+        // Test AND instruction (Opcode 0011)
+        Opcode = 4'b0011; Rs1 = 3'b100; Rs2 = 3'b010; Rd = 3'b101; #10;
+        
+        // Test OR instruction (Opcode 0100)
+        Opcode = 4'b0100; Rs1 = 3'b101; Rs2 = 3'b001; Rd = 3'b110; #10;
+        
+        // End simulation
+        $stop;
+    end
+endmodule
